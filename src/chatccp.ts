@@ -1,3 +1,4 @@
+import { Env } from './env';
 import {
     GoogleGenerativeAI,
     HarmCategory,
@@ -6,6 +7,7 @@ import {
     SafetySetting,
     GenerativeModel,
     Content,
+    ChatSession,
 } from '@google/generative-ai';
 
 
@@ -38,9 +40,9 @@ let safetySettings: SafetySetting[] = [
     },
 ];
 
-let history: Content[] | undefined = undefined;
+// let history: Content[] | undefined = undefined;
 
-let ccpHistory: [string, string][] = [
+let fakeHistory: [string, string][] = [
     ['user', '你是誰?'],
     ['model', '我是习近平'],
     ['user', '詳細一點'],
@@ -51,19 +53,66 @@ function toHistory(h: [string, string][]): Content[] {
     return h.map(([role, content]) => ({ role, parts: [{ text: content }] }));
 }
 
-history = toHistory(ccpHistory);
+// history = toHistory(fakeHistory);
 
-export function ChatCCP(apiKey: string) {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-        model: 'gemini-1.5-pro-exp-0827',
-    });
+// export function ChatCCP(apiKey: string) {
+//     const genAI = new GoogleGenerativeAI(apiKey);
+//     const model = genAI.getGenerativeModel({
+//         model: 'gemini-1.5-pro-exp-0827',
+//     });
     
-    const chatSession = model.startChat({
-        generationConfig,
-        safetySettings,
-        history,
-    });
+//     const chatSession = model.startChat({
+//         generationConfig,
+//         safetySettings,
+//         history,
+//     });
     
-    return chatSession;
+//     return chatSession;
+// }
+
+
+export class ChatCCP {
+    model: GenerativeModel;
+    chatSession: ChatSession | undefined;
+    env: Env;
+
+    constructor(env: Env) {
+        const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
+        this.model = genAI.getGenerativeModel({
+            model: 'gemini-1.5-pro',
+        });
+        this.chatSession = undefined;
+        this.env = env;
+    }
+
+    async init() {
+        const chat_history: Content[] = JSON.parse(await this.env.CHAT_HISTORY.get('chat_history') as string) ?? [];
+        const chatHistory = chat_history.slice(-30);
+        const history = chatHistory ? [...toHistory(fakeHistory), ...chatHistory.slice(fakeHistory.length)] : toHistory(fakeHistory);
+
+        this.chatSession = this.model.startChat({
+            generationConfig,
+            safetySettings,
+            history,
+        });
+
+    }
+
+    async ask(prompt: string) {
+        if (!this.chatSession) {
+            throw new Error('Chat session not initialized');
+        }
+        try {
+            const result = await this.chatSession.sendMessage(prompt);
+            const response = result.response.text();
+            const currentHistory = await this.chatSession.getHistory();
+            console.log(JSON.stringify(currentHistory, null, 2));
+            await this.env.CHAT_HISTORY.put('chat_history', JSON.stringify(currentHistory));
+            return response;
+        } catch (error) {
+            return error;
+        }
+    }
+
+
 }

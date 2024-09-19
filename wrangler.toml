@@ -69,9 +69,9 @@ DISCORD_PUBLIC_KEY = "d7daec4f3e3c3bc3579f2e4e3debce4c3a23c4e8255a0d5a23d4ec4e0b
 
 # Bind a KV Namespace. Use KV as persistent storage for small key-value pairs.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#kv-namespaces
-# [[kv_namespaces]]
-# binding = "MY_KV_NAMESPACE"
-# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[[kv_namespaces]]
+binding = "CHAT_HISTORY"
+id = "124a7aff462d4d5eb3b6305871577fc9"
 
 # Bind an mTLS certificate. Use to present a client certificate when communicating with another service.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#mtls-certificates

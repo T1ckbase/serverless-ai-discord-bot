@@ -102,9 +102,9 @@ commandHandler.addCommand(
                 request = prompt.value;
             // }
 
-            const chatCCP = ChatCCP(env.GEMINI_API_KEY);
-            const result = await chatCCP.sendMessage(request);
-            const response = result.response.text();
+            const chatCCP = new ChatCCP(env);
+            await chatCCP.init();
+            const response = await chatCCP.ask(request);
 
             const webhookBody: RESTPostAPIWebhookWithTokenJSONBody = {
                 content: `> ${prompt.value}\n\n${response}`,

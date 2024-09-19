@@ -11,8 +11,6 @@ import {
 import { fetcher } from "itty-fetcher";
 
 
-// TODO: switch to itty-fetcher
-
 export class CommandHandler {
     commands: Map<string, [
         APIApplicationCommand,

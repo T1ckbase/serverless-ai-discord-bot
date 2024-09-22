@@ -9,6 +9,7 @@ import {
     Content,
     ChatSession,
 } from '@google/generative-ai';
+import { testJSON } from './helpers';
 
 
 
@@ -86,8 +87,9 @@ export class ChatCCP {
     }
 
     async init() {
-        const chat_history: Content[] = JSON.parse(await this.env.CHAT_HISTORY.get('chat_history') as string) ?? [];
-        const chatHistory = chat_history.slice(-30);
+        const kv_chat_history = await this.env.CHAT_HISTORY.get('chat_history');
+        const chat_history: Content[] = JSON.parse(testJSON(kv_chat_history) ? kv_chat_history : '[]');
+        const chatHistory = chat_history.slice(-10);
         const history = chatHistory ? [...toHistory(fakeHistory), ...chatHistory.slice(fakeHistory.length)] : toHistory(fakeHistory);
 
         this.chatSession = this.model.startChat({
